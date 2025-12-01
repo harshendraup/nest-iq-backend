@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import logger from '../utils/logger';
 
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/realestate';
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/nest-iq';
 
 
 export default async function connectDB(): Promise<void> {

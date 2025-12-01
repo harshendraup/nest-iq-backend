@@ -33,7 +33,7 @@ app.use(
 );
 app.use(express.json({ limit: '10kb' }));
 
-app.use(mongoSanitize());
+app.use(mongoSanitize({ replaceWith: "_" }));
 app.use(hpp());
 app.use(rateLimiterMiddleware);
 
@@ -55,13 +55,13 @@ app.get('/health', (req: Request, res: Response) => {
 app.get('/', (req: Request, res: Response) => {
   res.status(200).json({
     success: true,
-    message: 'Welcome to the Real Estate API',
+    message: 'Welcome to the Nest-Iq-Server',
   });
 });
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, {
   explorer: true,
-  customSiteTitle: '🏡 Real Estate API Docs',
+  customSiteTitle: '🏡 RNest-Iq-Server API Docs',
 }));
 
 app.use('/api', routes);
