@@ -27,7 +27,7 @@ let server: any;
 
 async function startServer() {
   try {
-    logger.info('🚀 Initializing Real Estate Backend...');
+    logger.info('🚀 Initializing nest IQ  Backend...');
 
     await connectDB();
     logger.info('✅ MongoDB connection established successfully');
