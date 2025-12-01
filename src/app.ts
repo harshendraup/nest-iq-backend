@@ -47,7 +47,7 @@ app.get('/health', (req: Request, res: Response) => {
   res.status(200).json({
     success: true,
     status: 'UP',
-    message: 'Real Estate API is healthy',
+    message: 'nest iq  API is healthy',
     timestamp: new Date().toISOString(),
   });
 });
