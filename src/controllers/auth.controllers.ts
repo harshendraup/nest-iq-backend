@@ -5,7 +5,11 @@ import { entityIdGenerator } from "../utils/index"
 import jwt from 'jsonwebtoken';
 import  User  from "../models/user.models";
 import bcrypt from "bcrypt";
-
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  JWTPayload,
+} from "../utils/jwt";
 import * as AuthService from '../services/auth.services';
 import logger from '../utils/logger';
 import { OAuth2Client } from "google-auth-library";
@@ -97,6 +101,110 @@ export const handleToRegisterBNBUser = async (req: Request, res: Response) => {
     });
   }
 };
+
+
+export const handleToLoginBNBUser = async (req: Request, res: Response) => {
+  try {
+    const payload = req.body;
+
+    if (!payload?.email || !payload?.password) {
+      return res.status(400).json({
+        message: "Email & password are required",
+      });
+    }
+
+    const user: any = await User.findOne({ email: payload.email }).select(
+      "+password"
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found with this email",
+      });
+    }
+
+    const isValidPassword = await bcrypt.compare(
+      payload.password,
+      user.password
+    );
+
+    if (!isValidPassword) {
+      return res.status(401).json({
+        message: "Incorrect password",
+      });
+    }
+
+    const device = payload.device || req.headers["user-agent"] || "Unknown device";
+    const ip =
+      payload.ip ||
+      req.ip ||
+      req.headers["x-forwarded-for"] ||
+      req.socket.remoteAddress ||
+      "Unknown IP";
+
+    user.sessions.push({
+      device,
+      ip,
+      loggedInAt: new Date(),
+    });
+
+    await user.save();
+
+    const jwtPayload: JWTPayload = {
+      id: user._id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      userId: user.userId,
+      isEmailVerified: user.isEmailVerified,
+      profileCompleted: user.profileCompleted,
+    };
+
+    const accessToken = generateAccessToken(jwtPayload);
+
+    return res.status(200).json({
+      message: "Login successful",
+
+      tokens: {
+        accessToken,
+        expiresIn: process.env.JWT_EXPIRES_IN || "7d",
+      },
+
+      user: {
+        _id: user._id,
+        userId: user.userId,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        mobileNumber: user.mobileNumber,
+        status: user.status,
+
+        profileCompleted: user.profileCompleted,
+        isEmailVerified: user.isEmailVerified,
+        isMobileVerified: user.isMobileVerified,
+
+        profileImage: user.profileImage,
+        gender: user.gender,
+        dob: user.dob,
+
+        address: user.address,
+        preferences: user.preferences,
+
+        sessions: user.sessions.slice(-3), 
+        lastLogin: user.sessions[user.sessions.length - 1],
+      },
+    });
+  } catch (err: any) {
+    console.error("Login error:", err);
+
+    return res.status(500).json({
+      message: "Internal server error",
+      error: err.message,
+    });
+  }
+};
+
+
 export const handleAddTheProperty = async (req: Request, res: Response) => {
   try {
     const payload = req.body;
