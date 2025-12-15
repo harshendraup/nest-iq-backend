@@ -1,9 +1,8 @@
-import userModels from "../models/user.models";
 import { Property } from "../models/property.models";
 import { NextFunction, Request, Response } from "express";
 import { entityIdGenerator } from "../utils/index"
 import jwt from 'jsonwebtoken';
-import  User  from "../models/user.models";
+import User from "../models/user.models";
 import bcrypt from "bcrypt";
 import {
   generateAccessToken,
@@ -11,6 +10,8 @@ import {
   JWTPayload,
 } from "../utils/jwt";
 import * as AuthService from '../services/auth.services';
+import { storeEmailCode } from '../services/otpVerify.services';
+import { sendVerificationEmail } from '../services/email.services';
 import logger from '../utils/logger';
 import { OAuth2Client } from "google-auth-library";
 import * as JWT from '../utils/jwt';
@@ -32,7 +33,7 @@ export const handleToRegisterBNBUser = async (req: Request, res: Response) => {
   try {
     const payload = req.body;
 
-    if (!payload?.email || !payload?.name || !payload?.password || !payload?.address?.city ||!payload.role) {
+    if (!payload?.email || !payload?.name || !payload?.password || !payload?.address?.city || !payload.role) {
       return res.status(400).json({
         message: "Invalid payload, name, email, password, role & city are required"
       });
@@ -49,16 +50,16 @@ export const handleToRegisterBNBUser = async (req: Request, res: Response) => {
 
     const device = payload.device || req.headers["user-agent"] || "Unknown device";
     const ip = payload.ip || req.ip || req.headers["x-forwarded-for"] || "Unknown IP";
-    const userId= entityIdGenerator('USR')
+    const userId = entityIdGenerator('USR')
 
     const newUser = new User({
       name: payload.name,
       email: payload.email,
       password: hashedPassword,
       mobileNumber: payload.mobileNumber || null,
-      userId:userId,
+      userId: userId,
 
-      role: payload.role ||'bnb_User', 
+      role: payload.role || 'bnb_User',
 
       address: {
         ...payload.address
@@ -102,6 +103,74 @@ export const handleToRegisterBNBUser = async (req: Request, res: Response) => {
   }
 };
 
+
+export const handleToSendVerificationCodeOnEmail = async (req: Request, res: Response) => {
+  try {
+    const { email, role } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        message: 'Email is required'
+      });
+    }
+    const existingUser = await User.findOne({ email: email, role: role });
+    if (!existingUser) {
+      return res.status(404).json({
+        message: 'No user found with this email and role'
+      });
+    }
+
+    const result = await AuthService.requestEmailLoginCode(email);
+
+    return res.status(200).json({
+      message: 'OTP sent to email',
+      code: result.code
+    });
+  } catch (err: any) {
+    logger.error('[SendEmailOTP]', err);
+    return res.status(500).json({
+      message: err.message || 'Failed to send email OTP'
+    });
+  }
+}
+
+export const handleToVerifyEmailByOtp = async (req: Request, res: Response) => {
+  try {
+    const { email, code, role } = req.body;
+
+    const payload = req.body;
+    if (!payload.email || !payload.code || !payload.role) {
+      return res.status(400).json({
+        message: 'Email, OTP code and role are required'
+      });
+    }
+    const existingUser = await User.findOne({ email: email, role: role });
+    if (!existingUser) {
+      return res.status(404).json({
+        message: 'No user found with this email and role'
+      });
+    }
+
+    const result = await AuthService.verifyEmailLoginCode(
+      email,
+      code,
+      role
+    );
+    if (result) {
+      await User.updateOne({ email: email }, { isEmailVerified: true });
+    }
+    return res.status(200).json({
+      message: 'Email verified successfully',
+      token: result.token,
+      user: result.user
+    });
+  } catch (err: any) {
+    logger.warn('[VerifyEmailOTP]', err.message);
+    return res.status(400).json({
+      message: err.message || 'Invalid or expired OTP'
+    });
+  }
+}
 
 export const handleToLoginBNBUser = async (req: Request, res: Response) => {
   try {
@@ -190,7 +259,7 @@ export const handleToLoginBNBUser = async (req: Request, res: Response) => {
         address: user.address,
         preferences: user.preferences,
 
-        sessions: user.sessions.slice(-3), 
+        sessions: user.sessions.slice(-3),
         lastLogin: user.sessions[user.sessions.length - 1],
       },
     });
@@ -274,8 +343,8 @@ export const handleAddTheProperty = async (req: Request, res: Response) => {
         videos: payload.gallery?.videos,
       },
       status: payload.status || "available",
-      reviews:payload.reviews,
-      lastUpdatedOn:payload.lastUpdatedOn
+      reviews: payload.reviews,
+      lastUpdatedOn: payload.lastUpdatedOn
     });
 
     await newProperty.save();

@@ -15,7 +15,7 @@ import logger from '../utils/logger';
 export async function requestEmailLoginCode(email: string) {
   const { code } = await storeEmailCode(email, 300);
   await sendVerificationEmail(email, code);
-  return { success: true ,code:code};
+  return { success: true, code: code };
 }
 
 /* ------------ MOBILE OTP SEND (FREE) ------------ */
@@ -25,31 +25,31 @@ export async function requestMobileLoginCode(mobile: string) {
   // FREE METHOD → Print OTP to console instead of sending SMS
   logger.info(`[OTP][DEV] Mobile OTP sent (fake SMS): ${mobile} => ${code}`);
 
-  return { success: true ,code:code};
+  return { success: true, code: code };
 }
 
-export async function verifyEmailLoginCode(email: string, code: string, name?: string) {
+export async function verifyEmailLoginCode(email: string, code: string, role?: string) {
   await verifyEmailCode(email, code);
 
-  return completeLogin(email, undefined, name);
+  return completeLogin(email, undefined, role);
 }
 
-export async function verifyMobileLoginCode(mobile: string, code: string, name?: string) {
+export async function verifyMobileLoginCode(mobile: string, code: string, role?: string) {
   await verifyMobileCode(mobile, code);
 
-  return completeLogin(undefined, mobile, name);
+  return completeLogin(undefined, mobile, role);
 }
 
-export async function completeLogin(email?: string, mobile?: string, name?: string) {
+export async function completeLogin(email?: string, mobile?: string, role?: string) {
   let user = await UserModel.findOne({ $or: [{ email }, { mobile }] }).lean();
-  const userId=entityIdGenerator("user");
+  const userId = entityIdGenerator("user");
 
   if (!user) {
     const created = await UserModel.create({
-      email: email||"",
+      email: email || "",
       mobileNumber: mobile,
-      userId:userId,
-      name: name || "Unnamed User",
+      userId: userId,
+      name: "Unnamed User",
       isEmailVerified: !!email,
       isMobileVerified: !!mobile,
       password: Math.random().toString(36).slice(2, 12)

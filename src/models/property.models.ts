@@ -17,9 +17,9 @@ export interface IProperty extends Document {
   };
 
   dimensions: {
-    carpetArea: number;       
-    builtupArea: number;       
-    plotArea?: number;       
+    carpetArea: number;
+    builtupArea: number;
+    plotArea?: number;
     length?: number;
     width?: number;
   };
@@ -68,12 +68,12 @@ export interface IProperty extends Document {
     videos?: string[];
   };
 
-  reviews:{
+  reviews: {
     type: [String]
   },
 
-  lastUpdatedOn:{
-    type:Date
+  lastUpdatedOn: {
+    type: Date
   }
   createdAt: Date;
   updatedAt: Date;
@@ -103,7 +103,7 @@ const propertySchema = new Schema<IProperty>(
 
     propertyType: {
       type: String,
-      enum: ["villa", "flat", "plot", "independent-house", "commercial"],
+      enum: ["villa", "flat", "apartment", "house", "cottage", "commercial", "other",],
       required: true,
     },
 
@@ -173,9 +173,9 @@ const propertySchema = new Schema<IProperty>(
     reviews: {
       type: [String]
     },
-  
+
     lastUpdatedOn: {
-       type: Date,
+      type: Date,
     },
   },
   { timestamps: true }

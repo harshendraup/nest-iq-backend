@@ -9,7 +9,6 @@ import { config } from './config/index';
 // Validate critical environment variables
 const requiredEnvVars = ['PORT', 'MONGO_URI', 'JWT_SECRET'];
 requiredEnvVars.forEach((key) => {
-  console.log("hgbhacbakvcaghfvahv Av",process.env.PORT)
   if (!process.env[key]) {
     logger.error(`❌ Missing required environment variable: ${key}`);
     process.exit(1);
