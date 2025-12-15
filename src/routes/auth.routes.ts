@@ -1,5 +1,6 @@
 import express from "express";
 import * as AuthController from "../controllers/auth.controllers"
+import { authenticateUser, authorizeRoles } from "../middlewares/auth.middlewares";
 
 const router = express.Router();
 
@@ -10,7 +11,7 @@ router.post('/send/verification/code', AuthController.handleToSendVerificationCo
 router.post('/verify/email/otp', AuthController.handleToVerifyEmailByOtp)
 router.post('/login/user', AuthController.handleToLoginBNBUser)
 
-router.post('/add/property', AuthController.handleAddTheProperty);
+router.post('/add/property', authenticateUser, AuthController.handleAddTheProperty);
 router.get('/get/properties', AuthController.handleToGetTheProperties);
 const authRoutes = router;
 

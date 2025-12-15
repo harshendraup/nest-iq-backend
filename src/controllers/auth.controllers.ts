@@ -161,7 +161,6 @@ export const handleToVerifyEmailByOtp = async (req: Request, res: Response) => {
     }
     return res.status(200).json({
       message: 'Email verified successfully',
-      token: result.token,
       user: result.user
     });
   } catch (err: any) {
@@ -276,12 +275,18 @@ export const handleToLoginBNBUser = async (req: Request, res: Response) => {
 
 export const handleAddTheProperty = async (req: Request, res: Response) => {
   try {
+    const decodedToken = (req as any).user;
+    if (!decodedToken) {
+      return res.status(401).json({
+        message: "Unauthorized access - invalid token"
+      });
+    }
     const payload = req.body;
     const propertyId = entityIdGenerator("PRO");
 
     const newProperty = new Property({
       propertyId: propertyId,
-      brokerId: payload.brokerId,
+      brokerId: decodedToken.userId,
 
       title: payload.title,
       description: payload.description,
@@ -365,6 +370,12 @@ export const handleAddTheProperty = async (req: Request, res: Response) => {
 
 export const handleToGetTheProperties = async (req: Request, res: Response) => {
   try {
+    const decodedToken = (req as any).user;
+    if (!decodedToken) {
+      return res.status(401).json({
+        message: "Unauthorized access - invalid token"
+      });
+    }
     const query = req.query;
     let matchQuery = {};
     if (query.propertyId) {
