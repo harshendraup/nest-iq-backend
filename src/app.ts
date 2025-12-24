@@ -31,7 +31,7 @@ app.use(
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   })
 );
-app.use(express.json({ limit: '10kb' }));
+app.use(express.json({ limit: '50mb' }));
 
 app.use(mongoSanitize({ replaceWith: "_" }));
 app.use(hpp());

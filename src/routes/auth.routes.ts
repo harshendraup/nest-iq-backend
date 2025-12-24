@@ -12,7 +12,8 @@ router.post('/verify/email/otp', AuthController.handleToVerifyEmailByOtp)
 router.post('/login/user', AuthController.handleToLoginBNBUser)
 
 router.post('/add/property', authenticateUser, AuthController.handleAddTheProperty);
-router.get('/get/properties', AuthController.handleToGetTheProperties);
+router.get('/get/properties', authenticateUser, AuthController.handleToGetTheProperties);
+router.delete('/delete/property/:id', authenticateUser, AuthController.handleDeleteProperty);
 const authRoutes = router;
 
 export default authRoutes;

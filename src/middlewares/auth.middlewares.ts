@@ -20,6 +20,7 @@ export const authenticateUser = (req: Request, res: Response, next: NextFunction
     (req as any).user = decoded;
 
     logger.info(`✅ Authenticated | UserID: ${decoded.id} | Role: ${decoded.role || 'N/A'} | Path: ${req.originalUrl}`);
+    console.log("DEBUG MIDDLEWARE: Decoded User attached to req.user:", (req as any).user);
     next();
 
   } catch (error: any) {

@@ -276,6 +276,8 @@ export const handleToLoginBNBUser = async (req: Request, res: Response) => {
 export const handleAddTheProperty = async (req: Request, res: Response) => {
   try {
     const decodedToken = (req as any).user;
+    console.log("DEBUG CONTROLLER: req.user at start of handleAddTheProperty:", decodedToken);
+
     if (!decodedToken) {
       return res.status(401).json({
         message: "Unauthorized access - invalid token"
@@ -286,7 +288,7 @@ export const handleAddTheProperty = async (req: Request, res: Response) => {
 
     const newProperty = new Property({
       propertyId: propertyId,
-      brokerId: decodedToken.userId,
+      brokerId: decodedToken.id, // Fixed: Use _id (ObjectId) instead of custom userId string
 
       title: payload.title,
       description: payload.description,
@@ -371,6 +373,7 @@ export const handleAddTheProperty = async (req: Request, res: Response) => {
 export const handleToGetTheProperties = async (req: Request, res: Response) => {
   try {
     const decodedToken = (req as any).user;
+    console.log("DEBUG CONTROLLER: req.user at handleToGetTheProperties:", decodedToken);
     if (!decodedToken) {
       return res.status(401).json({
         message: "Unauthorized access - invalid token"
@@ -383,6 +386,13 @@ export const handleToGetTheProperties = async (req: Request, res: Response) => {
     }
     const properties = await Property.find(matchQuery);
     const totaLPropertyCount = properties.length
+    if (properties.length == 0) {
+      return res.status(200).json({
+        message: "No properties found",
+        properties: [],
+        total: 0
+      });
+    }
     return res.status(200).json({
       message: "Properties fetched successfully",
       properties: properties,
@@ -390,6 +400,30 @@ export const handleToGetTheProperties = async (req: Request, res: Response) => {
     });
   }
   catch (err: any) {
+    return res.status(500).json({
+      message: "Internal Server Error",
+      error: err.message
+    });
+  }
+};
+
+export const handleDeleteProperty = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const property = await Property.findOne({ propertyId: id });
+
+    if (!property) {
+      return res.status(404).json({
+        message: "Property not found"
+      });
+    }
+
+    await Property.deleteOne({ propertyId: id });
+
+    return res.status(200).json({
+      message: "Property deleted successfully"
+    });
+  } catch (err: any) {
     return res.status(500).json({
       message: "Internal Server Error",
       error: err.message
