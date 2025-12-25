@@ -3,7 +3,7 @@ import logger from './logger';
 import { Request } from 'express';
 
 const JWT_SECRET: Secret = process.env.JWT_SECRET || 'supersecretkey';
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '10d';
 const JWT_REFRESH_SECRET: Secret = process.env.JWT_REFRESH_SECRET || 'refreshsecretkey';
 const JWT_REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '30d';
 

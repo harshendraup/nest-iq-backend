@@ -432,3 +432,97 @@ export const handleDeleteProperty = async (req: Request, res: Response) => {
 };
 
 
+export const handleUpdateProperty = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const payload = req.body;
+
+    // Find existing property first to ensure it exists
+    const existingProperty = await Property.findOne({ propertyId: id });
+    if (!existingProperty) {
+      return res.status(404).json({ message: "Property not found" });
+    }
+
+    // Update fields
+    const updatedProperty = await Property.findOneAndUpdate(
+      { propertyId: id },
+      {
+        $set: {
+          title: payload.title,
+          description: payload.description,
+          propertyType: payload.propertyType,
+
+          pricing: {
+            totalPrice: payload.pricing?.totalPrice,
+            pricePerSqFt: payload.pricing?.pricePerSqFt,
+            emiAvailable: payload.pricing?.emiAvailable,
+            emiAmount: payload.pricing?.emiAmount
+          },
+
+          dimensions: {
+            carpetArea: payload.dimensions?.carpetArea,
+            builtupArea: payload.dimensions?.builtupArea,
+            plotArea: payload.dimensions?.plotArea,
+            length: payload.dimensions?.length,
+            width: payload.dimensions?.width,
+          },
+
+          configuration: {
+            bhk: payload.configuration?.bhk,
+            bedrooms: payload.configuration?.bedrooms,
+            bathrooms: payload.configuration?.bathrooms,
+            balconies: payload.configuration?.balconies,
+            furnishing: payload.configuration?.furnishing,
+            kitchen: payload.configuration?.kitchen,
+            parking: payload.configuration?.parking,
+          },
+
+          propertyStatus: payload.propertyStatus,
+          launchDate: payload.launchDate,
+          sellStartDate: payload.sellStartDate,
+          possessionStartDate: payload.possessionStartDate,
+
+          overview: {
+            size: payload.overview?.size,
+            reraId: payload.overview?.reraId,
+            projectName: payload.overview?.projectName,
+            builder: payload.overview?.builder,
+          },
+
+          location: {
+            address: payload.location?.address,
+            city: payload.location?.city,
+            state: payload.location?.state,
+            pincode: payload.location?.pincode,
+            latitude: payload.location?.latitude,
+            longitude: payload.location?.longitude,
+            nearestLandmarks: payload.location?.nearestLandmarks,
+          },
+
+          amenities: payload.amenities,
+
+          gallery: {
+            images: payload.gallery?.images,
+            videos: payload.gallery?.videos,
+          },
+
+          lastUpdatedOn: new Date()
+        }
+      },
+      { new: true } // Return updated document
+    );
+
+    return res.status(200).json({
+      message: "Property updated successfully",
+      property: updatedProperty
+    });
+
+  } catch (err: any) {
+    console.error("Update property error:", err);
+    return res.status(500).json({
+      message: "Internal Server Error",
+      error: err.message
+    });
+  }
+};
+
