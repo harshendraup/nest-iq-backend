@@ -14,7 +14,7 @@ import { storeEmailCode } from '../services/otpVerify.services';
 import { sendVerificationEmail } from '../services/email.services';
 import logger from '../utils/logger';
 import { OAuth2Client } from "google-auth-library";
-import * as JWT from '../utils/jwt';
+import Guest from '../models/guest.models'
 
 
 /**
@@ -273,6 +273,8 @@ export const handleToLoginBNBUser = async (req: Request, res: Response) => {
 };
 
 
+import { SubscriptionPlan } from "../models/subscriptionPlan.models";
+
 export const handleAddTheProperty = async (req: Request, res: Response) => {
   try {
     const decodedToken = (req as any).user;
@@ -283,6 +285,31 @@ export const handleAddTheProperty = async (req: Request, res: Response) => {
         message: "Unauthorized access - invalid token"
       });
     }
+
+    // --- Property Limit Validation Start ---
+    const user = await User.findById(decodedToken.id);
+    const existingPropertiesCount = await Property.countDocuments({ brokerId: decodedToken.id });
+
+    let limit = 2; // Default Free Limit
+    let planName = "Free";
+
+    if (user && user.subscriptionPlanId) {
+      const plan = await SubscriptionPlan.findById(user.subscriptionPlanId);
+      if (plan) {
+        planName = plan.name;
+        if (plan.name.toLowerCase().includes("basic")) limit = 10;
+        else if (plan.name.toLowerCase().includes("premium") || plan.name.toLowerCase().includes("pro")) limit = 999999;
+      }
+    }
+
+    if (existingPropertiesCount >= limit) {
+      return res.status(403).json({
+        message: `You have reached the limit of ${limit} properties for your ${planName} plan. Please upgrade to add more.`,
+        code: "LIMIT_REACHED"
+      });
+    }
+    // --- Property Limit Validation End ---
+
     const payload = req.body;
     const propertyId = entityIdGenerator("PRO");
 
@@ -525,4 +552,32 @@ export const handleUpdateProperty = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const handleToGetTheGuestUser = async (req: Request, res: Response) => {
+  try {
+    const decodedToken = (req as any).user;
+    if (!decodedToken) {
+      return res.status(401).json({
+        message: "Unauthorized access - invalid token"
+      });
+    }
+    const user = await Guest.find({});
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+        data: []
+      })
+    }
+    return res.status(200).json({
+      message: "User fetched successfully",
+      data: user
+    })
+
+  } catch (err: any) {
+    return res.status(500).json({
+      message: "Internal Server Error",
+      error: err.message
+    })
+  }
+}
 

@@ -9,6 +9,7 @@ export interface IUser extends Document {
   googleEmail?: string;
 
   role: 'user' | 'admin' | 'broker';
+  subscriptionPlanId?: Schema.Types.ObjectId;
 
   profileCompleted: boolean;
   profileImage?: string;
@@ -109,6 +110,11 @@ const UserSchema = new Schema<IUser>(
       type: String,
       enum: ["user", "admin", "broker"],
       default: "user",
+    },
+
+    subscriptionPlanId: {
+      type: Schema.Types.ObjectId,
+      ref: "SubscriptionPlan"
     },
 
     profileCompleted: { type: Boolean, default: false },

@@ -2,6 +2,7 @@
 import { Request, Response } from "express";
 import { Booking } from "../models/booking.models";
 import { Property } from "../models/property.models";
+import Guest from "../models/guest.models";
 
 interface CustomRequest extends Request {
     user?: {
@@ -28,6 +29,9 @@ export const handleCreateBooking = async (req: CustomRequest, res: Response) => 
             totalAmount,
             notes,
         } = req.body;
+
+        console.log("Create Booking Request Body:", req.body);
+        console.log("Decoded Token:", decodedToken);
 
         const brokerId = decodedToken.id;
 
@@ -67,13 +71,27 @@ export const handleCreateBooking = async (req: CustomRequest, res: Response) => 
 
         await newBooking.save();
 
+        // Save visitor/customer to Guest collection
+        const existingGuest = await Guest.findOne({ mobileNumber: customerPhone });
+        if (!existingGuest) {
+            const newGuest = new Guest({
+                name: customerName,
+                email: customerEmail,
+                mobileNumber: customerPhone,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            });
+
+            await newGuest.save();
+        }
+
         return res.status(201).json({
             message: "Booking created successfully",
             booking: newBooking,
         });
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error creating booking:", error);
-        return res.status(500).json({ message: "Internal server error" });
+        return res.status(500).json({ message: "Internal server error", error: error.message, stack: error.stack });
     }
 };
 

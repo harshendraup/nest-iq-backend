@@ -27,7 +27,6 @@ const bookingSchema = new Schema<IBooking>(
         bookingId: {
             type: String,
             unique: true,
-            required: true,
         },
         propertyId: {
             type: String,

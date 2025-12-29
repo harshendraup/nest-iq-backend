@@ -1,7 +1,7 @@
 
 import { Request, Response } from "express";
 import { SubscriptionPlan } from "../models/subscriptionPlan.models";
-
+import { entityIdGenerator } from "../utils/index";
 interface CustomRequest extends Request {
     user?: {
         id: string;
@@ -11,13 +11,13 @@ interface CustomRequest extends Request {
 
 export const handleCreateSubscriptionPlan = async (req: CustomRequest, res: Response) => {
     try {
-        const decodedToken = (req as any).user;
+        // const decodedToken = (req as any).user;
 
-        if (!decodedToken || decodedToken.role !== 'admin') {
-            return res.status(403).json({
-                message: "Forbidden: Only admins can create subscription plans"
-            });
-        }
+        // if (!decodedToken || decodedToken.role !== 'admin') {
+        //     return res.status(403).json({
+        //         message: "Forbidden: Only admins can create subscription plans"
+        //     });
+        // }
 
         const {
             name,
@@ -28,6 +28,7 @@ export const handleCreateSubscriptionPlan = async (req: CustomRequest, res: Resp
             benefits,
             isActive
         } = req.body;
+        const planId = entityIdGenerator("SUB");
 
         const newPlan = new SubscriptionPlan({
             name,
@@ -37,7 +38,8 @@ export const handleCreateSubscriptionPlan = async (req: CustomRequest, res: Resp
             features,
             benefits,
             isActive,
-            createdBy: decodedToken.id
+            planId,
+            createdBy: "admin"
         });
 
         await newPlan.save();

@@ -11,7 +11,7 @@ export interface ISubscriptionPlan extends Document {
     features: string[];
     benefits: string[];
     isActive: boolean;
-    createdBy: mongoose.Types.ObjectId; // Admin User ID
+    createdBy: string;
 
     createdAt: Date;
     updatedAt: Date;
@@ -22,7 +22,6 @@ const subscriptionPlanSchema = new Schema<ISubscriptionPlan>(
         planId: {
             type: String,
             unique: true,
-            required: true,
         },
         name: { type: String, required: true },
         price: { type: Number, required: true },
@@ -36,8 +35,7 @@ const subscriptionPlanSchema = new Schema<ISubscriptionPlan>(
         benefits: [{ type: String }],
         isActive: { type: Boolean, default: true },
         createdBy: {
-            type: Schema.Types.ObjectId,
-            ref: "User",
+            type: String,
             required: true,
         },
     },
