@@ -8,7 +8,7 @@ const router = Router();
 import stitchRoutes from './stitch.routes.js'; // Ensure .js extension for ESM if needed, or just import based on config. I'll omit extension for TS.
 import stitchRoutesNoExt from './stitch.routes';
 
-router.use('/auth', authRoutes);
+router.use('/b2b', authRoutes);
 router.use('/stitch', stitchRoutesNoExt);
 
 
