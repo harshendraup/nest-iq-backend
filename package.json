@@ -4,7 +4,7 @@
     "private": true,
     "main": "dist/server.js",
     "scripts": {
-        "dev": "nodemon",
+        "dev": "lsof -ti:8000 | xargs kill -9 2>/dev/null || true && nodemon",
         "build": "tsc",
         "start": "node src/server.ts",
         "lint": "eslint . --ext .ts",

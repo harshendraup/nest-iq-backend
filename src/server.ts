@@ -36,6 +36,14 @@ async function startServer() {
       logger.info(`📘 Swagger Docs available at: http://localhost:${PORT}`);
     });
 
+    server.on('error', (error: any) => {
+      if (error.code === 'EADDRINUSE') {
+        logger.error(`❌ Port ${PORT} is already in use. Please kill the process using it or run 'npm run dev' again.`);
+        process.exit(1);
+      }
+      logger.error(`🚨 Server error: ${error.message}`);
+    });
+
     process.on('unhandledRejection', (reason: any) => {
       logger.error(`🚨 Unhandled Rejection: ${reason?.message || reason}`);
       shutdownGracefully(1);
