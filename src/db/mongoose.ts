@@ -10,7 +10,10 @@ export default async function connectDB(): Promise<void> {
 
     logger.info('🟡 Connecting to MongoDB...');
 
-    await mongoose.connect(MONGO_URI);
+    await mongoose.connect(MONGO_URI, {
+      serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of hanging
+      connectTimeoutMS: 10000,
+    });
 
     logger.info('✅ MongoDB connection established successfully');
     console.log('✅ MongoDB connected successfully at:', MONGO_URI);
