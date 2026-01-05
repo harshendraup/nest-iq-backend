@@ -31,7 +31,7 @@ async function startServer() {
     await connectDB();
     logger.info('✅ MongoDB connection established successfully');
 
-    server = app.listen(PORT, '0.0.0.0/0', () => {
+    server = app.listen(PORT, '0.0.0.0', () => {
       logger.info(`🌍 Server is running in ${config.env} mode on port ${PORT}`);
       logger.info(`📘 Swagger Docs available at: http://localhost:${PORT}`);
     });
