@@ -26,9 +26,19 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 app.use(helmet());
 app.use(
   cors({
-    origin: config.allowedOrigins,
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+
+      if (config.allowedOrigins.indexOf(origin) !== -1 || config.env === 'development') {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'X-Request-ID'],
   })
 );
 app.use(express.json({ limit: '50mb' }));
